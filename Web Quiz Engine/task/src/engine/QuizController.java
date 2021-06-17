@@ -1,11 +1,13 @@
 package engine;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 public class QuizController {
@@ -41,7 +43,7 @@ public class QuizController {
     }
 
     @GetMapping("/api/quizzes")
-    public List<?> getAllQuizzes() {
+    public List<Quiz> getAllQuizzes() {
         if (quizzes.isEmpty()) {
             return List.of();
         }
@@ -49,31 +51,32 @@ public class QuizController {
     }
 
     @PostMapping(value = "/api/quizzes/{id}/solve")
-    public QuizResult answerQuiz(@PathVariable int id, @RequestParam(required = false) Integer[] answer) {
-        Quiz quiz = null;
+    public Result answerQuiz(@PathVariable int id, @RequestBody(required = false) Answer userAnswer) {
+        Quiz selectedQuiz = null;
 
+        // find the corresponding quiz using id given
         for (Quiz q : quizzes) {
             if (q.getId() == id) {
-                quiz = q;
+                selectedQuiz = q;
             }
         }
 
-        if (quiz == null) {
+        // check if specified quiz exists
+        if (selectedQuiz == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
-        if (answer == null) {
-            answer = new Integer[]{};
+        // check if request provided answer
+        if (userAnswer.getAnswer() == null) {
+            userAnswer.setAnswer(new Integer[]{});
         }
 
-        Set<Integer> userAnswers = new HashSet<>(Arrays.asList(answer));
-        Set<Integer> quizAnswers = new HashSet<>(Arrays.asList(quiz.getAnswer()));
+        Answer quizAnswer = new Answer(selectedQuiz.getAnswer());
 
-        if (userAnswers.equals(quizAnswers)) {
-            return new QuizResult(true, "Congratulations, you're right!");
+        if (userAnswer.equals(quizAnswer)) {
+            return new Result(true, "Congratulations, you're right!");
         } else {
-            assert(!quizAnswers.isEmpty());
-            return new QuizResult(false, "Wrong answer! Please, try again.");
+            return new Result(false, "Wrong answer! Please, try again.");
         }
     }
 }

@@ -241,7 +241,7 @@ files:
         }
     }
   learner_created: false
-- name: src/engine/QuizResult.java
+- name: src/engine/Result.java
   visible: true
   text: |
     package engine;
