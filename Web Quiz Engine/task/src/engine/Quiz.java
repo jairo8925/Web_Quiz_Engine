@@ -2,17 +2,21 @@ package engine;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Arrays;
 
+@Entity
 public class Quiz {
 
+    @Id
     @JsonProperty("id")
     private int id;
 
     @NotBlank
+    @Column(name = "title")
     @JsonProperty("title")
     private String title;
 
@@ -28,7 +32,7 @@ public class Quiz {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Integer[] answer;
 
-    public Quiz() {}
+    protected Quiz() {}
 
     public Quiz(int id, String title, String text, String[] options, Integer[] answer) {
         this.title = title;
@@ -39,6 +43,13 @@ public class Quiz {
             answer = new Integer[]{};
         }
         this.answer = answer;
+    }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "Customer[id=%d, title='%s', text='%s', options='%s', answer='%s']",
+                id, title, text, Arrays.toString(options), Arrays.toString(answer));
     }
 
     public String getText() {

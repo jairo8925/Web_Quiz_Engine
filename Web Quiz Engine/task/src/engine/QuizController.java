@@ -17,9 +17,6 @@ public class QuizController {
 
     @PostMapping("/api/quizzes")
     public Quiz createQuiz(@Valid @RequestBody Quiz q) {
-        //if (q.getTitle().isEmpty() || q.getText().isEmpty() || q.getOptions().length < 2) {
-        //    throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        //}
         Quiz newQuiz = new Quiz(counter++, q.getTitle(), q.getText(), q.getOptions(), q.getAnswer());
         quizzes.add(newQuiz);
         return newQuiz;
