@@ -1,12 +1,11 @@
 package engine;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import java.util.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/quizzes")
@@ -27,7 +26,7 @@ public class QuizController {
     public Quiz getQuiz(@PathVariable int id) {
         Quiz selectedQuiz = repo.findById(id);
         if (selectedQuiz == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found");
+            throw new QuizNotFoundException();
         }
         return selectedQuiz;
     }
@@ -48,7 +47,7 @@ public class QuizController {
 
         // check if specified quiz exists
         if (selectedQuiz == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found");
+            throw new QuizNotFoundException();
         }
 
         // check if request provided answer
