@@ -1,6 +1,7 @@
 package engine;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -12,6 +13,9 @@ import java.util.Arrays;
 public class Quiz {
 
     @Id
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator="seq")
+    @GenericGenerator(name = "seq", strategy="increment")
     @JsonProperty("id")
     private int id;
 
@@ -21,24 +25,26 @@ public class Quiz {
     private String title;
 
     @NotBlank
+    @Column(name = "text")
     @JsonProperty("text")
     private String text;
 
     @NotNull
     @Size(min = 2)
+    @Column(name = "options")
     @JsonProperty("options")
     private String[] options;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Column(name = "answer")
     private Integer[] answer;
 
     protected Quiz() {}
 
-    public Quiz(int id, String title, String text, String[] options, Integer[] answer) {
+    public Quiz(String title, String text, String[] options, Integer[] answer) {
         this.title = title;
         this.text = text;
         this.options = options;
-        this.id = id;
         if (answer == null) {
             answer = new Integer[]{};
         }
