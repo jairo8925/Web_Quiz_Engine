@@ -440,6 +440,234 @@ files:
         }
     }
   learner_created: false
+- name: src/engine/QuizResult.java
+  visible: true
+  text: |
+    package engine;
+
+    import com.fasterxml.jackson.annotation.JsonProperty;
+
+    public class QuizResult {
+
+        @JsonProperty("success")
+        private boolean success;
+
+        @JsonProperty("feedback")
+        private String feedback;
+
+        public QuizResult() {}
+
+        public QuizResult(boolean success, String feedback) {
+            this.success = success;
+            this.feedback = feedback;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getFeedback() {
+            return feedback;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+
+        public void setFeedback(String feedback) {
+            this.feedback = feedback;
+        }
+    }
+  learner_created: true
+- name: src/engine/Quiz.java
+  visible: true
+  text: |
+    package engine;
+
+    import com.fasterxml.jackson.annotation.JsonProperty;
+
+    public class Quiz {
+
+
+        @JsonProperty("id")
+        private int id;
+
+        @JsonProperty("title")
+        private String title;
+
+        @JsonProperty("text")
+        private String text;
+
+        @JsonProperty("options")
+        private String[] options;
+
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        private int answer;
+
+        public Quiz() {}
+
+        public Quiz(int id, String title, String text, String[] options, int answer) {
+            this.title = title;
+            this.text = text;
+            this.options = options;
+            this.id = id;
+            this.answer = answer;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public String[] getOptions() {
+            return options;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public int getAnswer() {
+            return answer;
+        }
+
+        public void setAnswer(int answer) {
+            this.answer = answer;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public void setOptions(String[] options) {
+            this.options = options;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+    }
+  learner_created: true
+- name: src/engine/QuizController.java
+  visible: true
+  text: |
+    package engine;
+
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.MediaType;
+    import org.springframework.web.bind.annotation.*;
+    import org.springframework.web.server.ResponseStatusException;
+
+    import java.util.ArrayList;
+    import java.util.List;
+
+    @RestController
+    public class QuizController {
+
+        private final List<Quiz> quizzes = new ArrayList<>();
+        private int counter = 1;
+
+        @PostMapping("/api/quizzes")
+        public Quiz createQuiz(@RequestBody Quiz q) {
+            Quiz newQuiz = new Quiz(counter++, q.getTitle(), q.getText(), q.getOptions(), q.getAnswer());
+            quizzes.add(newQuiz);
+            return newQuiz;
+        }
+
+        @GetMapping("/api/quizzes/{id}")
+        public Quiz getQuiz(@PathVariable int id) {
+            Quiz quiz = null;
+
+            for (Quiz q : quizzes) {
+                if (q.getId() == id) {
+                    quiz = q;
+                }
+            }
+
+            if (quiz == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+
+            return quiz;
+        }
+
+        @GetMapping("/api/quizzes")
+        public List<?> getAllQuizzes() {
+            if (quizzes.isEmpty()) {
+                return List.of();
+            }
+            return quizzes;
+        }
+
+        @PostMapping(value = "/api/quizzes/{id}/solve", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        public QuizResult answerQuiz(@PathVariable int id, @RequestParam int answer) {
+            Quiz quiz = null;
+
+            for (Quiz q : quizzes) {
+                if (q.getId() == id) {
+                    quiz = q;
+                }
+            }
+
+            if (quiz == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+
+            if (answer == quiz.getAnswer()) {
+                return new QuizResult(true, "Congratulations, you're right!");
+            } else {
+                return new QuizResult(false, "Wrong answer! Please, try again.");
+            }
+        }
+    }
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/91/stages/506/implement#comment
-status: Unchecked
+status: Failed
+feedback:
+  message: |-
+    Wrong answer in test #12
+
+    The JSON object at key success should equal to true, found false
+
+    Full JSON:
+    {
+      &quot;success&quot;: false,
+      &quot;feedback&quot;: &quot;Wrong answer! Please, try again.&quot;
+    }
+
+    Please find below the output of your program during this failed test.
+
+    ---
+
+
+      .   ____          _            __ _ _
+     /\\ / ___&#39;_ __ _ _(_)_ __  __ _ \ \ \ \
+    ( ( )\___ | &#39;_ | &#39;_| | &#39;_ \/ _` | \ \ \ \
+     \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+      &#39;  |____| .__|_| |_|_| |_\__, | / / / /
+     =========|_|==============|___/=/_/_/_/
+     :: Spring Boot ::        (v2.2.2.RELEASE)
+
+    2021-06-16 23:05:15.064  INFO 14316 --- [    Test worker] engine.WebQuizEngine                     : Starting WebQuizEngine on DESKTOP-JAIRO with PID 14316 (started by chris in C:\Users\chris\IdeaProjects\Web Quiz Engine\Web Quiz Engine\task)
+    2021-06-16 23:05:15.066  INFO 14316 --- [    Test worker] engine.WebQuizEngine                     : No active profile set, falling back to default profiles: default
+    2021-06-16 23:05:15.778  INFO 14316 --- [    Test worker] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8889 (http)
+    2021-06-16 23:05:15.786  INFO 14316 --- [    Test worker] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+    2021-06-16 23:05:15.786  INFO 14316 --- [    Test worker] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.29]
+    2021-06-16 23:05:15.854  INFO 14316 --- [    Test worker] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+    2021-06-16 23:05:15.854  INFO 14316 --- [    Test worker] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 761 ms
+    2021-06-16 23:05:16.044  INFO 14316 --- [    Test worker] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService &#39;applicationTaskExecutor&#39;
+    2021-06-16 23:05:16.177  INFO 14316 --- [    Test worker] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 14 endpoint(s) beneath base path &#39;/actuator&#39;
+    2021-06-16 23:05:16.213  INFO 14316 --- [    Test worker] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8889 (http) with context path &#39;&#39;
+    2021-06-16 23:05:16.216  INFO 14316 --- [    Test worker] engine.WebQuizEngine                     : Started WebQuizEngine in 1.365 seconds (JVM running for 1.903)
+    2021-06-16 23:05:16.438  INFO 14316 --- [nio-8889-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet &#39;dispatcherServlet&#39;
+    2021-06-16 23:05:16.439  INFO 14316 --- [nio-8889-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet &#39;dispatcherServlet&#39;
+    2021-06-16 23:05:16.443  INFO 14316 --- [nio-8889-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 4 ms
+  time: Thu, 17 Jun 2021 06:05:16 UTC
 record: -1

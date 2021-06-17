@@ -1,7 +1,10 @@
 package engine;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 public class Quiz {
 
@@ -9,25 +12,32 @@ public class Quiz {
     @JsonProperty("id")
     private int id;
 
+    @NotEmpty
     @JsonProperty("title")
     private String title;
 
+    @NotEmpty
     @JsonProperty("text")
     private String text;
 
+    @NotNull
+    @Size(min = 2)
     @JsonProperty("options")
     private String[] options;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private int answer;
+    private Integer[] answer;
 
     public Quiz() {}
 
-    public Quiz(int id, String title, String text, String[] options, int answer) {
+    public Quiz(int id, String title, String text, String[] options, Integer[] answer) {
         this.title = title;
         this.text = text;
         this.options = options;
         this.id = id;
+        if (answer == null) {
+            answer = new Integer[]{};
+        }
         this.answer = answer;
     }
 
@@ -47,11 +57,11 @@ public class Quiz {
         return id;
     }
 
-    public int getAnswer() {
+    public Integer[] getAnswer() {
         return answer;
     }
 
-    public void setAnswer(int answer) {
+    public void setAnswer(Integer[] answer) {
         this.answer = answer;
     }
 
