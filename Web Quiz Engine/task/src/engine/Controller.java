@@ -46,8 +46,8 @@ public class Controller {
     }
 
     @GetMapping("/quizzes")
-    public List<Quiz> getAllQuizzes() {
-        return quizService.getAll();
+    public List<Quiz> getAllQuizzes(@RequestParam int page) {
+        return quizService.getAll(page);
     }
 
     @PostMapping("/quizzes/{id}/solve")
@@ -58,5 +58,10 @@ public class Controller {
     @DeleteMapping("/quizzes/{id}")
     public ResponseEntity<?> deleteQuiz(@PathVariable int id, @AuthenticationPrincipal User user) {
         return quizService.delete(id, user);
+    }
+
+    @GetMapping("/quizzes/completed")
+    public void getCompletedQuizzes(@AuthenticationPrincipal User user) {
+
     }
 }

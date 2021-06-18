@@ -1,6 +1,9 @@
 package engine;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -30,10 +33,15 @@ public class QuizService {
         return selectedQuiz;
     }
 
-    public List<Quiz> getAll() {
-        List<Quiz> quizzes = quizRepository.findAll();
-        // return empty list if there are no quizzes
-        return Objects.requireNonNullElseGet(quizzes, List::of);
+    public List<Quiz> getAll(int page) {
+        Pageable paging = PageRequest.of(page, 10);
+        Page<Quiz> pagedResult = quizRepository.findAll(paging);
+
+        if (pagedResult.hasContent()) {
+            return pagedResult.getContent();
+        } else {
+            return List.of();
+        }
     }
 
     public Result answer(int id, Answer userAnswer) {

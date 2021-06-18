@@ -793,6 +793,643 @@ files:
         }
     }
   learner_created: false
+- name: src/engine/WrongAuthorException.java
+  visible: true
+  text: |
+    package engine;
+
+    import org.springframework.http.HttpStatus;
+    import org.springframework.web.bind.annotation.ResponseStatus;
+
+    @ResponseStatus(code = HttpStatus.FORBIDDEN)
+    public class WrongAuthorException extends RuntimeException {
+
+        public WrongAuthorException() {
+            super("You are not the author of this quiz!");
+        }
+
+        public WrongAuthorException(String message) {
+            super(message);
+        }
+
+    }
+  learner_created: true
+- name: src/engine/Result.java
+  visible: true
+  text: |
+    package engine;
+
+    import com.fasterxml.jackson.annotation.JsonProperty;
+
+    public class Result {
+
+        public static final String CORRECT = "Congratulations, you're right!";
+        public static final String INCORRECT = "Wrong answer! Please, try again.";
+
+        @JsonProperty("success")
+        private boolean success;
+        @JsonProperty("feedback")
+        private String feedback;
+
+        public Result(boolean success, String feedback) {
+            this.success = success;
+            this.feedback = feedback;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getFeedback() {
+            return feedback;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+
+        public void setFeedback(String feedback) {
+            this.feedback = feedback;
+        }
+    }
+  learner_created: true
+- name: src/engine/QuizService.java
+  visible: true
+  text: |
+    package engine;
+
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.stereotype.Service;
+
+    import java.util.List;
+    import java.util.Objects;
+
+    @Service
+    public class QuizService {
+
+        private final QuizRepository quizRepository;
+
+        @Autowired
+        public QuizService(QuizRepository quizRepository) {
+            this.quizRepository = quizRepository;
+        }
+
+        public Quiz create(Quiz quiz) {
+            return quizRepository.save(quiz);
+        }
+
+        public Quiz get(int id) {
+            Quiz selectedQuiz = quizRepository.findById(id);
+            if (selectedQuiz == null) {
+                throw new QuizNotFoundException();
+            }
+            return selectedQuiz;
+        }
+
+        public List<Quiz> getAll() {
+            List<Quiz> quizzes = quizRepository.findAll();
+            // return empty list if there are no quizzes
+            return Objects.requireNonNullElseGet(quizzes, List::of);
+        }
+
+        public Result answer(int id, Answer userAnswer) {
+            // find the corresponding quiz using id given
+            Quiz selectedQuiz = quizRepository.findById(id);
+
+            // check if specified quiz exists
+            if (selectedQuiz == null) {
+                throw new QuizNotFoundException();
+            }
+
+            // check if request provided answer
+            userAnswer = userAnswer.getAnswer() != null ? userAnswer : new Answer(new Integer[]{});
+
+            // get the correct quiz answer
+            Answer quizAnswer = new Answer(selectedQuiz.getAnswer());
+
+            // check if answers match
+            if (userAnswer.equals(quizAnswer)) {
+                return new Result(true, Result.CORRECT);
+            } else {
+                return new Result(false, Result.INCORRECT);
+            }
+        }
+
+        public ResponseEntity<?> delete(int id, User user) {
+            Quiz selectedQuiz = quizRepository.findById(id);
+
+            if (selectedQuiz == null) {
+                throw new QuizNotFoundException();
+            }
+
+            if (selectedQuiz.getUser().getId() != user.getId()) {
+                throw new WrongAuthorException();
+            }
+
+            quizRepository.delete(selectedQuiz);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+
+    }
+  learner_created: true
+- name: src/engine/SecurityConfiguration.java
+  visible: true
+  text: |
+    package engine;
+
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.context.annotation.Bean;
+    import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+    import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+    import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+    import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+    import org.springframework.security.core.userdetails.UserDetailsService;
+    import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+    import org.springframework.security.crypto.password.PasswordEncoder;
+
+    @EnableWebSecurity
+    public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+        @Autowired
+        private UserDetailsService service;
+
+        @Autowired
+        void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+            auth.userDetailsService(service);
+        }
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http.httpBasic()
+                    .and()
+                    .csrf().disable()
+                    .headers().frameOptions().disable()
+                    .and()
+                    .authorizeRequests()
+                    .antMatchers("/api/register", "/actuator/shutdown").permitAll()
+                    .anyRequest().authenticated();
+        }
+
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+            return new BCryptPasswordEncoder();
+        }
+    }
+  learner_created: true
+- name: src/engine/Controller.java
+  visible: true
+  text: |
+    package engine;
+
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.security.core.annotation.AuthenticationPrincipal;
+    import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+    import org.springframework.web.bind.annotation.*;
+
+    import javax.validation.Valid;
+
+    import java.util.List;
+
+    @RestController
+    @RequestMapping("/api")
+    public class Controller {
+
+        private final QuizService quizService;
+        private final UserRepository userRepository;
+
+        @Autowired
+        public Controller(QuizService quizService, UserRepository userRepository) {
+            this.quizService = quizService;
+            this.userRepository = userRepository;
+        }
+
+        @PostMapping("/register")
+        public void registerUser(@Valid @RequestBody User newUser) {
+            if (userRepository.existsByEmail(newUser.getEmail())) {
+                throw new EmailAlreadyTakenException();
+            }
+            // encodes the user's password
+            newUser.setPassword(new BCryptPasswordEncoder().encode(newUser.getPassword()));
+            userRepository.save(newUser);
+        }
+
+        @PostMapping("/quizzes")
+        public Quiz createQuiz(@Valid @RequestBody Quiz quiz, @AuthenticationPrincipal User user) {
+            // set the author of quiz
+            quiz.setUser(user);
+            return quizService.create(quiz);
+        }
+
+        @GetMapping("/quizzes/{id}")
+        public Quiz getQuiz(@PathVariable int id) {
+            return quizService.get(id);
+        }
+
+        @GetMapping("/quizzes")
+        public List<Quiz> getAllQuizzes() {
+            return quizService.getAll();
+        }
+
+        @PostMapping("/quizzes/{id}/solve")
+        public Result answerQuiz(@PathVariable int id, @RequestBody(required = false) Answer userAnswer) {
+            return quizService.answer(id, userAnswer);
+        }
+
+        @DeleteMapping("/quizzes/{id}")
+        public ResponseEntity<?> deleteQuiz(@PathVariable int id, @AuthenticationPrincipal User user) {
+            return quizService.delete(id, user);
+        }
+    }
+  learner_created: true
+- name: src/engine/EmailAlreadyTakenException.java
+  visible: true
+  text: |
+    package engine;
+
+    import org.springframework.http.HttpStatus;
+    import org.springframework.web.bind.annotation.ResponseStatus;
+
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public class EmailAlreadyTakenException extends RuntimeException {
+
+        public EmailAlreadyTakenException() {
+            super("Specified email has already been taken!");
+        }
+
+        public EmailAlreadyTakenException(String message) {
+            super(message);
+        }
+
+    }
+  learner_created: true
+- name: src/engine/QuizNotFoundException.java
+  visible: true
+  text: |
+    package engine;
+
+    import org.springframework.http.HttpStatus;
+    import org.springframework.web.bind.annotation.ResponseStatus;
+
+    @ResponseStatus(code = HttpStatus.NOT_FOUND)
+    public class QuizNotFoundException extends RuntimeException {
+
+        public QuizNotFoundException() {
+            super("Quiz not found!");
+        }
+
+        public QuizNotFoundException(String message) {
+            super(message);
+        }
+
+    }
+  learner_created: true
+- name: src/engine/UserRepository.java
+  visible: true
+  text: |
+    package engine;
+
+    import org.springframework.data.repository.CrudRepository;
+
+    public interface UserRepository extends CrudRepository<User, Integer> {
+
+        User findByEmail(String email);
+
+        boolean existsByEmail(String email);
+
+    }
+  learner_created: true
+- name: src/engine/QuizRepository.java
+  visible: true
+  text: |
+    package engine;
+
+    import org.springframework.data.repository.CrudRepository;
+
+    import java.util.List;
+
+
+    public interface QuizRepository extends CrudRepository<Quiz, Integer> {
+
+        Quiz findById(int id);
+
+        List<Quiz> findAll();
+    }
+  learner_created: true
+- name: src/engine/Answer.java
+  visible: true
+  text: |
+    package engine;
+
+    import com.fasterxml.jackson.annotation.JsonProperty;
+
+    import java.util.Arrays;
+    import java.util.HashSet;
+
+    public class Answer {
+
+        @JsonProperty("answer")
+        private Integer[] answer;
+
+        protected Answer() {}
+
+        public Answer(Integer[] answer) {
+            this.answer = answer;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Answer other = (Answer) o;
+            return new HashSet<>(Arrays.asList(this.answer)).equals(new HashSet<>(Arrays.asList((other.answer))));
+        }
+
+        @Override
+        public int hashCode() {
+            return Arrays.hashCode(answer);
+        }
+
+        public Integer[] getAnswer() {
+            return answer;
+        }
+
+        public void setAnswer(Integer[] answer) {
+            this.answer = answer;
+        }
+    }
+  learner_created: true
+- name: src/engine/Quiz.java
+  visible: true
+  text: |
+    package engine;
+
+    import com.fasterxml.jackson.annotation.JsonProperty;
+    import javax.persistence.*;
+    import javax.validation.constraints.NotBlank;
+    import javax.validation.constraints.NotNull;
+    import javax.validation.constraints.Size;
+
+    @Entity
+    public class Quiz {
+
+        @Id
+        @GeneratedValue(strategy = GenerationType.AUTO)
+        private int id;
+
+        @ManyToOne
+        @JoinColumn(name = "user_id")
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        private User user;
+
+        @NotBlank
+        private String title;
+
+        @NotBlank
+        private String text;
+
+        @NotNull
+        @Size(min = 2)
+        private String[] options;
+
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        private Integer[] answer = new Integer[]{};
+
+        public int getId() {
+            return id;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public String[] getOptions() {
+            return options;
+        }
+
+        public Integer[] getAnswer() {
+            return answer;
+        }
+
+        public User getUser() {
+            return user;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        public void setOptions(String[] options) {
+            this.options = options;
+        }
+
+        public void setAnswer(Integer[] answer) {
+            this.answer = answer;
+        }
+
+        public void setUser(User user) {
+            this.user = user;
+        }
+    }
+  learner_created: true
+- name: src/engine/UserService.java
+  visible: true
+  text: |
+    package engine;
+
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.security.core.userdetails.UserDetailsService;
+    import org.springframework.security.core.userdetails.UsernameNotFoundException;
+    import org.springframework.stereotype.Service;
+
+    @Service
+    public class UserService implements UserDetailsService {
+
+        private final UserRepository repo;
+
+        @Autowired
+        public UserService(UserRepository repo) {
+            this.repo = repo;
+        }
+
+        @Override
+        public User loadUserByUsername(String email) throws UsernameNotFoundException {
+            return repo.findByEmail(email);
+        }
+    }
+  learner_created: true
+- name: src/engine/User.java
+  visible: true
+  text: |
+    package engine;
+
+    import org.hibernate.annotations.GenericGenerator;
+    import org.springframework.security.core.GrantedAuthority;
+    import org.springframework.security.core.authority.SimpleGrantedAuthority;
+    import org.springframework.security.core.userdetails.UserDetails;
+
+    import javax.persistence.*;
+    import javax.validation.constraints.Email;
+    import javax.validation.constraints.NotBlank;
+    import javax.validation.constraints.NotEmpty;
+    import javax.validation.constraints.Size;
+    import java.util.Collection;
+    import java.util.Collections;
+    import java.util.List;
+
+    @Entity
+    public class User implements UserDetails {
+
+        @Id
+        @GeneratedValue(strategy = GenerationType.AUTO)
+        private int id;
+
+        @Email(regexp = ".+@.+\\..+")
+        @Column(unique = true)
+        @NotBlank
+        private String email;
+
+        @NotEmpty
+        @Size(min = 5)
+        private String password;
+
+        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+        private List<Quiz> quizzes;
+
+        public int getId() {
+            return id;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public List<Quiz> getQuizzes() {
+            return quizzes;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public void setQuizzes(List<Quiz> quizzes) {
+            this.quizzes = quizzes;
+        }
+
+        @Override
+        public Collection<? extends GrantedAuthority> getAuthorities() {
+            return Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
+        }
+
+        @Override
+        public String getUsername() {
+            return email;
+        }
+
+        @Override
+        public boolean isAccountNonExpired() {
+            return true;
+        }
+
+        @Override
+        public boolean isAccountNonLocked() {
+            return true;
+        }
+
+        @Override
+        public boolean isCredentialsNonExpired() {
+            return true;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return true;
+        }
+
+    }
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/91/stages/509/implement#comment
-status: Unchecked
+status: Failed
+feedback:
+  message: |-
+    Wrong answer in test #8
+
+    The JSON array should be object, found array
+
+    Full JSON:
+    []
+
+    Please find below the output of your program during this failed test.
+
+    ---
+
+
+      .   ____          _            __ _ _
+     /\\ / ___&#39;_ __ _ _(_)_ __  __ _ \ \ \ \
+    ( ( )\___ | &#39;_ | &#39;_| | &#39;_ \/ _` | \ \ \ \
+     \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+      &#39;  |____| .__|_| |_|_| |_\__, | / / / /
+     =========|_|==============|___/=/_/_/_/
+     :: Spring Boot ::        (v2.2.2.RELEASE)
+
+    2021-06-17 20:38:03.449  INFO 40561 --- [    Test worker] engine.WebQuizEngine                     : Starting WebQuizEngine on Christians-MacBook-Pro.local with PID 40561 (started by jairo in /Users/jairo/IdeaProjects/Web_Quiz_Engine/Web Quiz Engine/task)
+    2021-06-17 20:38:03.452  INFO 40561 --- [    Test worker] engine.WebQuizEngine                     : No active profile set, falling back to default profiles: default
+    2021-06-17 20:38:04.192  INFO 40561 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+    2021-06-17 20:38:04.243  INFO 40561 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 42ms. Found 2 JPA repository interfaces.
+    2021-06-17 20:38:04.545  INFO 40561 --- [    Test worker] trationDelegate$BeanPostProcessorChecker : Bean &#39;org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration&#39; of type [org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+    2021-06-17 20:38:04.745  INFO 40561 --- [    Test worker] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8889 (http)
+    2021-06-17 20:38:04.754  INFO 40561 --- [    Test worker] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+    2021-06-17 20:38:04.754  INFO 40561 --- [    Test worker] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.29]
+    2021-06-17 20:38:04.842  INFO 40561 --- [    Test worker] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+    2021-06-17 20:38:04.842  INFO 40561 --- [    Test worker] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 1350 ms
+    2021-06-17 20:38:04.945  INFO 40561 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+    2021-06-17 20:38:05.122  INFO 40561 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+    2021-06-17 20:38:05.128  INFO 40561 --- [    Test worker] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at &#39;/h2-console&#39;. Database available at &#39;jdbc:h2:file:../quizdb&#39;
+    2021-06-17 20:38:05.329  INFO 40561 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+    2021-06-17 20:38:05.397  INFO 40561 --- [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate Core {5.4.9.Final}
+    2021-06-17 20:38:05.571  INFO 40561 --- [    Test worker] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.0.Final}
+    2021-06-17 20:38:05.671  INFO 40561 --- [    Test worker] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+    2021-06-17 20:38:06.371  INFO 40561 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+    2021-06-17 20:38:06.379  INFO 40561 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit &#39;default&#39;
+    2021-06-17 20:38:06.676  WARN 40561 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+    2021-06-17 20:38:06.801  INFO 40561 --- [    Test worker] o.s.s.web.DefaultSecurityFilterChain     : Creating filter chain: any request, [org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@77371ee5, org.springframework.security.web.context.SecurityContextPersistenceFilter@7726855c, org.springframework.security.web.header.HeaderWriterFilter@41ee8de5, org.springframework.security.web.authentication.logout.LogoutFilter@5148a818, org.springframework.security.web.authentication.www.BasicAuthenticationFilter@3e588d2f, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@21bee2c, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@6931d7cf, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@4cf6ec27, org.springframework.security.web.session.SessionManagementFilter@8dc9530, org.springframework.security.web.access.ExceptionTranslationFilter@1d8dda4f, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@12a27d1a]
+    2021-06-17 20:38:06.898  INFO 40561 --- [    Test worker] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService &#39;applicationTaskExecutor&#39;
+    2021-06-17 20:38:07.117  INFO 40561 --- [    Test worker] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 14 endpoint(s) beneath base path &#39;/actuator&#39;
+    2021-06-17 20:38:07.169  INFO 40561 --- [    Test worker] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8889 (http) with context path &#39;&#39;
+    2021-06-17 20:38:07.171  INFO 40561 --- [    Test worker] engine.WebQuizEngine                     : Started WebQuizEngine in 4.133 seconds (JVM running for 4.734)
+    2021-06-17 20:38:07.468  INFO 40561 --- [nio-8889-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet &#39;dispatcherServlet&#39;
+    2021-06-17 20:38:07.469  INFO 40561 --- [nio-8889-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet &#39;dispatcherServlet&#39;
+    2021-06-17 20:38:07.475  INFO 40561 --- [nio-8889-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 5 ms
+    2021-06-17 20:38:07.934  WARN 40561 --- [nio-8889-exec-3] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public void engine.Controller.registerUser(engine.User): [Field error in object &#39;user&#39; on field &#39;email&#39;: rejected value [google.com]; codes [Email.user.email,Email.email,Email.java.lang.String,Email]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [user.email,email]; arguments []; default message [email],[Ljavax.validation.constraints.Pattern$Flag;@5bf1e0e4,.+@.+\..+]; default message [must be a well-formed email address]] ]
+    2021-06-17 20:38:07.981  WARN 40561 --- [nio-8889-exec-4] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public void engine.Controller.registerUser(engine.User): [Field error in object &#39;user&#39; on field &#39;email&#39;: rejected value [well@googlecom]; codes [Email.user.email,Email.email,Email.java.lang.String,Email]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [user.email,email]; arguments []; default message [email],[Ljavax.validation.constraints.Pattern$Flag;@5bf1e0e4,.+@.+\..+]; default message [must be a well-formed email address]] ]
+    2021-06-17 20:38:08.002  WARN 40561 --- [nio-8889-exec-6] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public void engine.Controller.registerUser(engine.User): [Field error in object &#39;user&#39; on field &#39;password&#39;: rejected value [1234]; codes [Size.user.password,Size.password,Size.java.lang.String,Size]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [user.password,password]; arguments []; default message [password],2147483647,5]; default message [size must be between 5 and 2147483647]] ]
+    2021-06-17 20:38:08.010  WARN 40561 --- [nio-8889-exec-7] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public void engine.Controller.registerUser(engine.User): [Field error in object &#39;user&#39; on field &#39;password&#39;: rejected value [123]; codes [Size.user.password,Size.password,Size.java.lang.String,Size]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [user.password,password]; arguments []; default message [password],2147483647,5]; default message [size must be between 5 and 2147483647]] ]
+  time: Fri, 18 Jun 2021 03:38:08 UTC
 record: -1
