@@ -516,7 +516,7 @@ files:
         }
     }
   learner_created: true
-- name: src/engine/QuizController.java
+- name: src/engine/Controller.java
   visible: true
   text: |
     package engine;

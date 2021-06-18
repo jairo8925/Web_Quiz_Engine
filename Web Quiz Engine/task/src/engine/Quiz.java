@@ -11,25 +11,21 @@ public class Quiz {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @JsonProperty("id")
     private int id;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private User user;
 
     @NotBlank
-    @JsonProperty("title")
     private String title;
 
     @NotBlank
-    @JsonProperty("text")
     private String text;
 
     @NotNull
     @Size(min = 2)
-    @JsonProperty("options")
     private String[] options;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
