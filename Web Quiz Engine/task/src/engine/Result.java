@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Result {
 
+    public static final String CORRECT = "Congratulations, you're right!";
+    public static final String INCORRECT = "Wrong answer! Please, try again.";
+
     @JsonProperty("success")
     private boolean success;
     @JsonProperty("feedback")

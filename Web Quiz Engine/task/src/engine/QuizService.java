@@ -53,9 +53,9 @@ public class QuizService {
 
         // check if answers match
         if (userAnswer.equals(quizAnswer)) {
-            return new Result(true, "Congratulations, you're right!");
+            return new Result(true, Result.CORRECT);
         } else {
-            return new Result(false, "Wrong answer! Please, try again.");
+            return new Result(false, Result.INCORRECT);
         }
     }
 
