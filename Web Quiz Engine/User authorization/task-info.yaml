@@ -883,49 +883,6 @@ files:
         }
     }
   learner_created: true
-- name: src/engine/Application.java
-  visible: true
-  text: |
-    package engine;
-
-    import org.slf4j.Logger;
-    import org.slf4j.LoggerFactory;
-    import org.springframework.boot.CommandLineRunner;
-    import org.springframework.boot.SpringApplication;
-    import org.springframework.context.annotation.Bean;
-
-
-    public class Application {
-
-        private static final Logger log =
-                LoggerFactory.getLogger(Application.class);
-
-        public static void main(String[] args) {
-            SpringApplication.run(Application.class);
-        }
-
-        @Bean
-        public CommandLineRunner demo(QuizRepository repo) {
-            return (args) -> {
-                repo.save(new Quiz("Title", "Text", new String[]{"Option 1", "Option 2"}, new Integer[]{1}));
-                repo.save(new Quiz("Rawr", "Text", new String[]{"Option 1", "Option 2"}, new Integer[]{0, 1}));
-
-                log.info("Quizzes found with findAll():");
-                log.info("-------------------------------");
-                for (Quiz quiz : repo.findAll()) {
-                    log.info(quiz.toString());
-                }
-                log.info("");
-
-                Quiz quiz = repo.findById(1);
-                log.info("Quiz found with findById(1):");
-                log.info("--------------------------------");
-                log.info(quiz.toString());
-                log.info("");
-            };
-        }
-    }
-  learner_created: true
 - name: src/engine/QuizController.java
   visible: true
   text: |
@@ -996,13 +953,22 @@ files:
         }
     }
   learner_created: true
-- name: src/engine/User.java
+- name: src/engine/QuizService.java
+  visible: true
+  learner_created: true
+- name: src/engine/SimpleGrantedAuthority.java
   visible: true
   learner_created: true
 - name: src/engine/UserRepository.java
   visible: true
   learner_created: true
-- name: src/engine/QuizService.java
+- name: src/engine/User.java
+  visible: true
+  learner_created: true
+- name: src/engine/SecurityConfiguration.java
+  visible: true
+  learner_created: true
+- name: src/engine/UserService.java
   visible: true
   learner_created: true
 feedback_link: https://hyperskill.org/projects/91/stages/508/implement#comment
