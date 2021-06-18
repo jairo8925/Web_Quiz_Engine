@@ -59,5 +59,9 @@ public class QuizService {
         }
     }
 
+    public void remove(Quiz quiz) {
+        repo.delete(quiz);
+    }
+
 
 }

@@ -956,9 +956,6 @@ files:
 - name: src/engine/QuizService.java
   visible: true
   learner_created: true
-- name: src/engine/SimpleGrantedAuthority.java
-  visible: true
-  learner_created: true
 - name: src/engine/UserRepository.java
   visible: true
   learner_created: true
@@ -972,5 +969,8 @@ files:
   visible: true
   learner_created: true
 feedback_link: https://hyperskill.org/projects/91/stages/508/implement#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Fri, 18 Jun 2021 02:46:59 UTC
 record: 5

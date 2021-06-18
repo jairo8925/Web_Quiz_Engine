@@ -1,19 +1,16 @@
 package engine;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Arrays;
 
 @Entity
 public class Quiz {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="seq")
-    @GenericGenerator(name = "seq", strategy="increment")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @JsonProperty("id")
     private int id;
 
@@ -58,6 +55,10 @@ public class Quiz {
         return answer;
     }
 
+    public User getUser() {
+        return user;
+    }
+
     public void setId(int id) {
         this.id = id;
     }
@@ -76,5 +77,9 @@ public class Quiz {
 
     public void setAnswer(Integer[] answer) {
         this.answer = answer;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
