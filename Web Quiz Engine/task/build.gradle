@@ -1,6 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '2.2.2.RELEASE'
     id 'java'
+    id "io.freefair.lombok" version "6.0.0-m2"
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -16,7 +17,7 @@ sourceSets.main.resources.srcDirs = ["src/resources"]
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     compile("org.springframework.boot:spring-boot-starter-web")
     runtimeOnly 'com.h2database:h2'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 }

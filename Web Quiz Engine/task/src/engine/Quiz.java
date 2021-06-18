@@ -1,6 +1,8 @@
 package engine;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -10,6 +12,7 @@ import javax.validation.constraints.Size;
 import java.util.Arrays;
 
 @Entity
+@Getter @Setter
 public class Quiz {
 
     @Id
@@ -37,7 +40,7 @@ public class Quiz {
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "answer")
-    private Integer[] answer;
+    private Integer[] answer = new Integer[]{};
 
     protected Quiz() {}
 
@@ -56,45 +59,5 @@ public class Quiz {
         return String.format(
                 "Customer[id=%d, title='%s', text='%s', options='%s', answer='%s']",
                 id, title, text, Arrays.toString(options), Arrays.toString(answer));
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String[] getOptions() {
-        return options;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public Integer[] getAnswer() {
-        return answer;
-    }
-
-    public void setAnswer(Integer[] answer) {
-        this.answer = answer;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setOptions(String[] options) {
-        this.options = options;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 }

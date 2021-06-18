@@ -1,28 +1,18 @@
 package engine;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Arrays;
 import java.util.HashSet;
 
+@Getter @Setter @AllArgsConstructor
 public class Answer {
 
     @JsonProperty("answer")
     private Integer[] answer;
-
-    public Answer(Integer[] answer) {
-        this.answer = answer;
-    }
-
-    public Answer() {}
-
-    public Integer[] getAnswer() {
-        return answer;
-    }
-
-    public void setAnswer(Integer[] answer) {
-        this.answer = answer;
-    }
 
     @Override
     public boolean equals(Object o) {
