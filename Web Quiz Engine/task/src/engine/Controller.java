@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -46,13 +47,13 @@ public class Controller {
     }
 
     @GetMapping("/quizzes")
-    public List<Quiz> getAllQuizzes(@RequestParam int page) {
+    public Map<String, ?> getAllQuizzes(@RequestParam int page) {
         return quizService.getAll(page);
     }
 
     @PostMapping("/quizzes/{id}/solve")
-    public Result answerQuiz(@PathVariable int id, @RequestBody(required = false) Answer userAnswer) {
-        return quizService.answer(id, userAnswer);
+    public Result answerQuiz(@PathVariable int id, @RequestBody(required = false) Answer userAnswer, @AuthenticationPrincipal User user) {
+        return quizService.answer(id, userAnswer, user);
     }
 
     @DeleteMapping("/quizzes/{id}")
@@ -61,7 +62,7 @@ public class Controller {
     }
 
     @GetMapping("/quizzes/completed")
-    public void getCompletedQuizzes(@AuthenticationPrincipal User user) {
-
+    public Map<String, ?> getCompletedQuizzes(@RequestParam int page, @AuthenticationPrincipal User user) {
+        return quizService.getCompletedQuizzes(user, page);
     }
 }

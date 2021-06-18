@@ -440,6 +440,45 @@ files:
         }
     }
   learner_created: false
+- name: src/engine/QuizResult.java
+  visible: true
+  text: |
+    package engine;
+
+    import com.fasterxml.jackson.annotation.JsonProperty;
+
+    public class QuizResult {
+
+        @JsonProperty("success")
+        private boolean success;
+
+        @JsonProperty("feedback")
+        private String feedback;
+
+        public QuizResult() {}
+
+        public QuizResult(boolean success, String feedback) {
+            this.success = success;
+            this.feedback = feedback;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getFeedback() {
+            return feedback;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+
+        public void setFeedback(String feedback) {
+            this.feedback = feedback;
+        }
+    }
+  learner_created: true
 - name: src/engine/Quiz.java
   visible: true
   text: |
@@ -516,7 +555,7 @@ files:
         }
     }
   learner_created: true
-- name: src/engine/Controller.java
+- name: src/engine/QuizController.java
   visible: true
   text: |
     package engine;
@@ -589,51 +628,6 @@ files:
         }
     }
   learner_created: true
-- name: src/engine/Answer.java
-  visible: true
-  learner_created: true
-- name: src/engine/Result.java
-  visible: true
-  text: |
-    package engine;
-
-    import com.fasterxml.jackson.annotation.JsonProperty;
-
-    public class QuizResult {
-
-        @JsonProperty("success")
-        private boolean success;
-
-        @JsonProperty("feedback")
-        private String feedback;
-
-        public QuizResult() {}
-
-        public QuizResult(boolean success, String feedback) {
-            this.success = success;
-            this.feedback = feedback;
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
-
-        public String getFeedback() {
-            return feedback;
-        }
-
-        public void setSuccess(boolean success) {
-            this.success = success;
-        }
-
-        public void setFeedback(String feedback) {
-            this.feedback = feedback;
-        }
-    }
-  learner_created: true
 feedback_link: https://hyperskill.org/projects/91/stages/506/implement#comment
 status: Solved
-feedback:
-  message: Congratulations!
-  time: Thu, 17 Jun 2021 07:22:03 UTC
-record: 3
+record: 6
