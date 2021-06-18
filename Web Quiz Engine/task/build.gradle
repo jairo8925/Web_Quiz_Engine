@@ -1,7 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '2.2.2.RELEASE'
-    id 'java'
     id "io.freefair.lombok" version "6.0.0-m2"
+    id 'java'
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -20,4 +20,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     compile("org.springframework.boot:spring-boot-starter-web")
     runtimeOnly 'com.h2database:h2'
+
+    compileOnly 'org.projectlombok:lombok:1.18.8'
+    annotationProcessor 'org.projectlombok:lombok:1.18.8'
 }

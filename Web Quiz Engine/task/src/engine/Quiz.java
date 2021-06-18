@@ -60,4 +60,44 @@ public class Quiz {
                 "Customer[id=%d, title='%s', text='%s', options='%s', answer='%s']",
                 id, title, text, Arrays.toString(options), Arrays.toString(answer));
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public String[] getOptions() {
+        return options;
+    }
+
+    public Integer[] getAnswer() {
+        return answer;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public void setOptions(String[] options) {
+        this.options = options;
+    }
+
+    public void setAnswer(Integer[] answer) {
+        this.answer = answer;
+    }
 }

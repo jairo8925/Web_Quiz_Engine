@@ -50,9 +50,7 @@ public class QuizService {
             userAnswer.setAnswer(new Integer[]{});
         }
 
-        Integer[] correct = selectedQuiz.getAnswer();
-        assert(correct != null);
-        Answer quizAnswer = new Answer(correct);
+        Answer quizAnswer = new Answer(selectedQuiz.getAnswer());
 
         if (userAnswer.equals(quizAnswer)) {
             return new Result(true, "Congratulations, you're right!");
