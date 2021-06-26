@@ -1,5 +1,6 @@
-package engine;
+package engine.repository;
 
+import engine.model.Quiz;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.util.List;

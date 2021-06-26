@@ -1,5 +1,10 @@
-package engine;
+package engine.service;
 
+import engine.exceptions.QuizNotFoundException;
+import engine.exceptions.WrongAuthorException;
+import engine.model.*;
+import engine.repository.CompletedQuizRepository;
+import engine.repository.QuizRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

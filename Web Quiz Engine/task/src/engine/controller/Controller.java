@@ -1,5 +1,12 @@
-package engine;
+package engine.controller;
 
+import engine.service.QuizService;
+import engine.repository.UserRepository;
+import engine.exceptions.EmailAlreadyTakenException;
+import engine.model.Answer;
+import engine.model.Quiz;
+import engine.model.Result;
+import engine.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -8,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController

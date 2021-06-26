@@ -1,6 +1,6 @@
-package engine;
+package engine.model;
 
-import org.hibernate.annotations.GenericGenerator;
+import engine.model.Quiz;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
