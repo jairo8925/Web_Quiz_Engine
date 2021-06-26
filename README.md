@@ -47,4 +47,4 @@ Returns a JSON object that contains a success boolean and a feedback message.
 * Delete a quiz given its id. The user deleting the quiz must be the author.
 \
 \
-```DELETE: /quizzes/{id}```
+```DELETE: /api/quizzes/{id}```
