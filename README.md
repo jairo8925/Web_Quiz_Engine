@@ -9,8 +9,8 @@ Other users can access other quizzes and solve them. Users and quizzes are store
 \
 ```POST: /api/register```
 
-* Saves a JSON object of quiz on the database. Quiz must contain title, text (question), options (array of size 2 minimum), and an answer 
-(an integer array of size 0, 1 or more than 1, that corresponds to indices of options array). Returns a JSON object of the quiz including its generated id.
+* Saves a given quiz on the database. Quiz object must contain title, text (question), options (array of size 2 minimum), and an answer 
+(an integer array of size 0, 1 or more than 1, which corresponds to indices of options array). Returns a JSON object of the quiz including its generated id.
 \
 \
 ```POST: /api/quizzes```
@@ -21,15 +21,23 @@ Other users can access other quizzes and solve them. Users and quizzes are store
 ```GET: /api/quizzes/{id}```
 
 
-* Get all quizzes with pagination. Returns at most 10 quizzes at a time given a page number.
+* Get all quizzes with pagination. Returns 10 quizzes at a time given a page number.
 \
 \
-```GET: /api/quizzes```
+```GET: /api/quizzes?page=#```
 
     For example, ```/api/quizzes?page=1``` returns 10 quizzes on page 1.
 
 
-* Answer a quiz, given the id of a quiz and a request body JSON containing an integer array corresponding to indices of options array.
+* Get all completed/solved quizzes of a user with pagination. Returns 10 quizzes at a time given a page number.
+\
+\
+```GET: /quizzes/completed?page=#```
+
+   Again, ```/api/quizzes/completed?page=1``` returns 10 completed quizzes on page 1.
+   
+   
+* Answer a quiz, given the id of a quiz and an answer object containing an integer array corresponding to indices of options array.
 Returns a JSON object that contains a success boolean and a feedback message.
 \
 \
@@ -40,11 +48,3 @@ Returns a JSON object that contains a success boolean and a feedback message.
 \
 \
 ```DELETE: /quizzes/{id}```
-
-
-* Get all completed/solved quizzes of a user with pagination. Returns at most 10 quizzes at a time given a page number.
-\
-\
-```GET: /quizzes/completed```
-
-   Again, ```/api/quizzes/completed?page=1``` returns 10 completed quizzes on page 1.
