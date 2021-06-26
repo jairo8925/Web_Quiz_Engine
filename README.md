@@ -15,18 +15,18 @@ Other users can access other quizzes and solve them. Users and quizzes are store
 \
 ```POST: /api/quizzes```
 
-* Get the quiz given its id
+* Get the quiz given its id.
 \
 \
 ```GET: /api/quizzes/{id}```
 
 
-* Get all quizzes with pagination. Returns at most 10 quizzes at a time given page
+* Get all quizzes with pagination. Returns at most 10 quizzes at a time given a page number.
 \
 \
 ```GET: /api/quizzes```
 
-    For example, ```/api/quizzes?page=1``` returns 10 quizzes on page 1
+    For example, ```/api/quizzes?page=1``` returns 10 quizzes on page 1.
 
 
 * Answer a quiz, given the id of a quiz and a request body JSON containing an integer array corresponding to indices of options array.
@@ -34,3 +34,17 @@ Returns a JSON object that contains a success boolean and a feedback message.
 \
 \
 ```POST: /api/quizzes/{id}```
+
+
+* Delete a quiz given its id. The user deleting the quiz must be the author.
+\
+\
+```DELETE: /quizzes/{id}```
+
+
+* Get all completed/solved quizzes of a user with pagination. Returns at most 10 quizzes at a time given a page number.
+\
+\
+```GET: /quizzes/completed```
+
+   Again, ```/api/quizzes/completed?page=1``` returns 10 completed quizzes on page 1.
